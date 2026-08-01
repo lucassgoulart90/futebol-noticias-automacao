@@ -8,18 +8,8 @@ from fontes import FONTES
 from noticias import descobrir_noticias, extrair_materia, detectar_novidades
 from historico import obter_gerenciador
 
-try:
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.lib.units import cm
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
-    from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
-    from reportlab.pdfbase import pdfmetrics
-    from reportlab.pdfbase.ttfonts import TTFont
-    from reportlab.lib.colors import HexColor
-    REPORTLAB_AVAILABLE = True
-except ImportError:
-    REPORTLAB_AVAILABLE = False
+# ReportLab não é mais necessário (email sem PDF)
+REPORTLAB_AVAILABLE = False
 
 RAIZ = Path(__file__).parent
 selecionadas: list[tuple[str, str]] = []
@@ -1177,9 +1167,8 @@ def verificar_novidades() -> None:
     
     # Perguntar se deseja gerar PDF
     if todas_novidades:
-        gerar_pdf = input("\nDeseja gerar PDF com as novidades? (s/n): ").strip().lower()
-        if gerar_pdf == 's':
-            gerar_pdf_novidades(todas_novidades)
+        # Relatório enviado automaticamente por email
+        print("\nRelatório será enviado automaticamente por email (via automação GitHub Actions).")
     else:
         print("Nenhuma novidade encontrada nos sites selecionados.")
 
