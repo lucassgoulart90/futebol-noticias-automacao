@@ -27,6 +27,7 @@ def verificar_todas_novidades():
     gerenciador = obter_gerenciador()
     todas_novidades = []
     ultimas_por_site = {}  # Armazena as 3 últimas de cada site
+    primeira_execucao = True  # Flag para controlar se é primeira execução
     
     print(f"=== VERIFICANDO NOVIDADES - {datetime.now():%d/%m/%Y %H:%M} ===")
     
@@ -41,6 +42,7 @@ def verificar_todas_novidades():
             try:
                 dt_ultima = datetime.fromisoformat(ultima_busca)
                 print(f"Última busca: {dt_ultima.strftime('%d/%m/%Y %H:%M')}")
+                primeira_execucao = False  # Se tem histórico, não é primeira execução
             except:
                 print(f"Última busca: {ultima_busca}")
         else:
@@ -106,12 +108,17 @@ def verificar_todas_novidades():
             print(f"Erro ao verificar {FONTES[site].nome}: {e}")
     
     print(f"\n=== RESUMO ===")
-    print(f"Total de novidades: {len(todas_novidades)}")
+    if primeira_execucao:
+        print("Primeira execução do sistema. Histórico criado.")
+        print("Próxima execução mostrará apenas novidades reais.")
+        todas_novidades = []  # Não mostrar novidades na primeira execução
+    else:
+        print(f"Total de novidades: {len(todas_novidades)}")
     
-    return todas_novidades, ultimas_por_site
+    return todas_novidades, ultimas_por_site, primeira_execucao
 
 
-def enviar_email_relatorio(novidades, ultimas_por_site, destinatarios):
+def enviar_email_relatorio(novidades, ultimas_por_site, destinatarios, primeira_execucao=False):
     """Envia email com relatório de novidades e últimas 3 de cada site no corpo do email."""
     from dotenv import load_dotenv
     load_dotenv()
@@ -154,6 +161,16 @@ def enviar_email_relatorio(novidades, ultimas_por_site, destinatarios):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📊 RESUMO
+"""
+        
+        if primeira_execucao:
+            corpo += f"""
+📭 Primeira execução do sistema
+Histórico criado. Próxima execução mostrará apenas novidades reais.
+
+"""
+        else:
+            corpo += f"""
 {"✅" if novidades else "📭"} Novidades encontradas: {len(novidades)}
 
 """
@@ -231,11 +248,11 @@ def main():
     destinatarios_email = os.getenv('EMAIL_DESTINATARIOS', 'seu-email@example.com')
     
     # Verificar novidades
-    novidades, ultimas_por_site = verificar_todas_novidades()
+    novidades, ultimas_por_site, primeira_execucao = verificar_todas_novidades()
     
     # Enviar email sempre (com ou sem novidades)
     print("\nEnviando relatório por email...")
-    sucesso = enviar_email_relatorio(novidades, ultimas_por_site, destinatarios_email)
+    sucesso = enviar_email_relatorio(novidades, ultimas_por_site, destinatarios_email, primeira_execucao)
     
     if sucesso:
         print("✓ Processo concluído com sucesso!")
