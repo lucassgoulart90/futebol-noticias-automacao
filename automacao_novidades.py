@@ -172,6 +172,22 @@ Gerado automaticamente pelo sistema Futebol Notícias
 
 def main():
     """Função principal da automação."""
+    # Verificar horário permitido (7h30 às 23h30)
+    hora_atual = datetime.now().hour
+    minuto_atual = datetime.now().minute
+    
+    # Converter para minutos totais
+    minutos_totais = hora_atual * 60 + minuto_atual
+    inicio_permitido = 7 * 60 + 30  # 7h30 = 450 minutos
+    fim_permitido = 23 * 60 + 30    # 23h30 = 1410 minutos
+    
+    if not (inicio_permitido <= minutos_totais <= fim_permitido):
+        print(f"Fora do horário permitido (7h30-23h30). Horário atual: {hora_atual:02d}:{minuto_atual:02d}")
+        print("Automação não será executada.")
+        return 0
+    
+    print(f"Horário permitido: {hora_atual:02d}:{minuto_atual:02d} (dentro do horário 7h30-23h30)")
+    
     # Configurações
     destinatarios_email = os.getenv('EMAIL_DESTINATARIOS', 'seu-email@example.com')
     

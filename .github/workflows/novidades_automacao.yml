@@ -2,7 +2,7 @@ name: Verificar Novidades e Enviar Email
 
 on:
   schedule:
-    # Executa a cada 30 minutos
+    # Executa a cada 30 minutos (o script verifica se está no horário permitido)
     - cron: '*/30 * * * *'
   # Permite execução manual
   workflow_dispatch:
