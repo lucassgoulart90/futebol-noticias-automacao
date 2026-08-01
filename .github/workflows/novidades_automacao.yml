@@ -30,9 +30,7 @@ jobs:
       uses: browser-actions/setup-chrome@v1
       with:
         chrome-version: stable
-    
-    - name: Configurar ChromeDriver
-      uses: nanasess/setup-chromedriver@v1
+        # O Chrome já inclui o driver, não precisa de instalação separada
     
     - name: Configurar variáveis de ambiente
       env:
