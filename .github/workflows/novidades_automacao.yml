@@ -40,6 +40,7 @@ jobs:
         SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
         EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
         EMAIL_DESTINATARIOS: ${{ secrets.EMAIL_DESTINATARIOS }}
+        GREMIO_FIREBASE_KEY: ${{ secrets.GREMIO_FIREBASE_KEY }}
       run: |
         echo "SMTP_SERVER=$SMTP_SERVER" >> .env
         echo "SMTP_PORT=$SMTP_PORT" >> .env
@@ -47,6 +48,7 @@ jobs:
         echo "SMTP_PASSWORD=$SMTP_PASSWORD" >> .env
         echo "EMAIL_FROM=$EMAIL_FROM" >> .env
         echo "EMAIL_DESTINATARIOS=$EMAIL_DESTINATARIOS" >> .env
+        echo "GREMIO_FIREBASE_KEY=$GREMIO_FIREBASE_KEY" >> .env
     
     - name: Verificar novidades e enviar email
       run: |

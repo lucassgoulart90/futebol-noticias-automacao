@@ -25,7 +25,7 @@ warnings.filterwarnings("ignore", message=".*tzname.*identified but not understo
 
 FUSO = ZoneInfo("America/Sao_Paulo")
 CABECALHOS = {"User-Agent": "Mozilla/5.0 (compatible; FutebolNoticias/1.0; +https://localhost)"}
-GREMIO_FIREBASE_KEY = "AIzaSyAkH7Rmqp9vdek-HniQcxwDLAwPsJlpy70"
+GREMIO_FIREBASE_KEY = os.getenv('GREMIO_FIREBASE_KEY', '')
 GREMIO_FIREBASE_URL = "https://firestore.googleapis.com/v1/projects/gremio-a1502/databases/(default)/documents"
 
 
