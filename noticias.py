@@ -234,38 +234,46 @@ def descobrir_noticias_portal_gremista(dia: str) -> list[Noticia]:
         try:
             sopa = BeautifulSoup(baixar(url), "html.parser")
             
-            # Procurar por h2/h3 com links (estrutura do Portal do Gremista)
-            for tag in ['h2', 'h3']:
-                headers = sopa.find_all(tag)
-                for h in headers:
-                    link = h.find('a')
-                    if not link:
-                        continue
-                    
-                    href = link['href']
-                    destino = urlparse(href)
-                    
-                    # Apenas links do próprio domínio
-                    if not destino.netloc.endswith("portaldogremista.com.br"):
-                        continue
-                    
-                    # Ignorar links de paginação
-                    if "page/" in href:
-                        continue
-                    
-                    titulo = link.get_text(" ", strip=True)
-                    if len(titulo) < 20:
-                        continue
-                    
-                    # Procurar data no elemento pai
-                    cartao = h.find_parent(['div', 'article'])
-                    contexto = cartao.get_text(" ", strip=True) if cartao else titulo
-                    
-                    elemento_tempo = (cartao.find("time") if cartao else None) or h.find_next("time")
-                    texto_data = elemento_tempo.get("datetime") if elemento_tempo and elemento_tempo.get("datetime") else (elemento_tempo.get_text(" ", strip=True) if elemento_tempo else contexto)
-                    
-                    data = interpretar_data(texto_data)
-                    
+            # Procurar por todos os links em vez de apenas h2/h3
+            links = sopa.find_all('a', href=True)
+            
+            for link in links:
+                href = link['href']
+                destino = urlparse(href)
+                
+                # Apenas links do próprio domínio
+                if not destino.netloc.endswith("portaldogremista.com.br"):
+                    continue
+                
+                # Ignorar links de paginação e navegação
+                if any(termo in href for termo in ["page/", "categoria", "tag", "author", "wp-content", "feed"]):
+                    continue
+                
+                # Construir URL completa se necessário
+                if href.startswith('/'):
+                    href = urljoin('https://portaldogremista.com.br', href)
+                
+                # Evitar duplicatas
+                if href in encontradas:
+                    continue
+                
+                titulo = link.get_text(" ", strip=True)
+                if len(titulo) < 10:  # Reduzir filtro de 20 para 10
+                    continue
+                
+                # Procurar data no elemento pai
+                cartao = link.find_parent(['div', 'article', 'li', 'section'])
+                contexto = cartao.get_text(" ", strip=True) if cartao else titulo
+                
+                elemento_tempo = (cartao.find("time") if cartao else None) or link.find_next("time")
+                texto_data = elemento_tempo.get("datetime") if elemento_tempo and elemento_tempo.get("datetime") else (elemento_tempo.get_text(" ", strip=True) if elemento_tempo else contexto)
+                
+                data = interpretar_data(texto_data)
+                
+                # Para "recentes", adiciona todas sem filtro de dia
+                if dia == "recentes":
+                    encontradas[href] = Noticia(titulo=titulo, url=href, data=data, origem="Portal do Gremista")
+                else:
                     if eh_dia_alvo(data, dia):
                         encontradas[href] = Noticia(titulo=titulo, url=href, data=data, origem="Portal do Gremista")
         except Exception as e:
