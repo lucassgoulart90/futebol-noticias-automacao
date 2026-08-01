@@ -138,12 +138,18 @@ def enviar_email_relatorio(novidades, ultimas_por_site, destinatarios):
         msg = MIMEMultipart()
         msg['From'] = email_from
         msg['To'] = ', '.join(destinatarios)
-        msg['Subject'] = f"⚽ Novidades Futebol - {datetime.now():%d/%m/%Y %H:%M}"
+        
+        # Usar fuso correto para o horário
+        from zoneinfo import ZoneInfo
+        fuso_sp = ZoneInfo("America/Sao_Paulo")
+        agora_sp = datetime.now(fuso_sp)
+        
+        msg['Subject'] = f"⚽ Novidades Futebol - {agora_sp:%d/%m/%Y %H:%M}"
         
         # Construir corpo do email
         corpo = f"""
 🏆 RELATÓRIO DE NOVIDADES - FUTEBOL
-📅 Verificado em: {datetime.now():%d/%m/%Y às %H:%M}
+📅 Verificado em: {agora_sp:%d/%m/%Y às %H:%M} (Horário de São Paulo)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -162,11 +168,6 @@ def enviar_email_relatorio(novidades, ultimas_por_site, destinatarios):
                 momento = noticia.data.strftime("%d/%m %H:%M") if noticia.data else "sem data"
                 corpo += f"• [{momento} - {noticia.origem}] {noticia.titulo}\n"
                 corpo += f"  Link: {noticia.url}\n\n"
-        else:
-            corpo += f"""
-📭 Nenhuma novidade encontrada desde a última verificação.
-
-"""
         
         # Adicionar as 3 últimas de cada site
         corpo += f"""
@@ -232,7 +233,7 @@ def main():
     # Verificar novidades
     novidades, ultimas_por_site = verificar_todas_novidades()
     
-    # Enviar email com relatório (sempre envia, com ou sem novidades)
+    # Enviar email sempre (com ou sem novidades)
     print("\nEnviando relatório por email...")
     sucesso = enviar_email_relatorio(novidades, ultimas_por_site, destinatarios_email)
     
