@@ -17,15 +17,6 @@ from dotenv import load_dotenv
 from config import PALAVRAS_EXCLUIDAS
 
 
-def detectar_novidades(noticias_atuais: list[Noticia], urls_anteriores: set[str]) -> list[Noticia]:
-    """Filtra notícias retornando apenas as novas (não vistas anteriormente)."""
-    novas = []
-    for noticia in noticias_atuais:
-        if noticia.url not in urls_anteriores:
-            novas.append(noticia)
-    return novas
-
-
 # Carregar variáveis de ambiente
 load_dotenv()
 
@@ -44,6 +35,15 @@ class Noticia:
     url: str
     data: datetime | None = None
     origem: str = ""
+
+
+def detectar_novidades(noticias_atuais: list[Noticia], urls_anteriores: set[str]) -> list[Noticia]:
+    """Filtra notícias retornando apenas as novas (não vistas anteriormente)."""
+    novas = []
+    for noticia in noticias_atuais:
+        if noticia.url not in urls_anteriores:
+            novas.append(noticia)
+    return novas
 
 
 def agora() -> datetime:
