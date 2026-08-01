@@ -15,17 +15,18 @@ from pathlib import Path
 # Adicionar diretório atual ao path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from menu import verificar_novidades, gerar_pdf_novidades
+from menu import verificar_novidades
 from historico import obter_gerenciador
 from fontes import FONTES
 
 
 def verificar_todas_novidades():
-    """Verifica novidades em todos os sites disponíveis."""
+    """Verifica novidades em todos os sites disponíveis e retorna as 3 últimas de cada."""
     sites_todos = ["gremio", "gzh", "ge", "portaldogremista", "cbf", "conmebol", "ge_selecao", "fgf"]
     
     gerenciador = obter_gerenciador()
     todas_novidades = []
+    ultimas_por_site = {}  # Armazena as 3 últimas de cada site
     
     print(f"=== VERIFICANDO NOVIDADES - {datetime.now():%d/%m/%Y %H:%M} ===")
     
@@ -85,6 +86,9 @@ def verificar_todas_novidades():
             from noticias import detectar_novidades
             novidades = detectar_novidades(noticias_atuais, urls_anteriores)
             
+            # Guardar as 3 últimas do site (seja novidade ou não)
+            ultimas_por_site[site] = noticias_atuais[:3]
+            
             if novidades:
                 print(f"✓ {len(novidades)} novidade(s) encontrada(s)")
                 todas_novidades.extend(novidades)
@@ -104,11 +108,11 @@ def verificar_todas_novidades():
     print(f"\n=== RESUMO ===")
     print(f"Total de novidades: {len(todas_novidades)}")
     
-    return todas_novidades
+    return todas_novidades, ultimas_por_site
 
 
-def enviar_email_com_pdf(novidades, pdf_path, destinatarios):
-    """Envia email com o PDF de novidades anexado para múltiplos destinatários."""
+def enviar_email_relatorio(novidades, ultimas_por_site, destinatarios):
+    """Envia email com relatório de novidades e últimas 3 de cada site no corpo do email."""
     from dotenv import load_dotenv
     load_dotenv()
     
@@ -134,27 +138,61 @@ def enviar_email_com_pdf(novidades, pdf_path, destinatarios):
         msg = MIMEMultipart()
         msg['From'] = email_from
         msg['To'] = ', '.join(destinatarios)
-        msg['Subject'] = f"Novidades Futebol - {datetime.now():%d/%m/%Y %H:%M}"
+        msg['Subject'] = f"⚽ Novidades Futebol - {datetime.now():%d/%m/%Y %H:%M}"
         
-        # Corpo do email
+        # Construir corpo do email
         corpo = f"""
-Novidades verificadas em {datetime.now():%d/%m/%Y às %H:%M}
+🏆 RELATÓRIO DE NOVIDADES - FUTEBOL
+📅 Verificado em: {datetime.now():%d/%m/%Y às %H:%M}
 
-Total de novidades encontradas: {len(novidades)}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Em anexo: PDF com detalhes das novidades.
+📊 RESUMO
+{"✅" if novidades else "📭"} Novidades encontradas: {len(novidades)}
+
+"""
+        
+        # Adicionar novidades se houver
+        if novidades:
+            corpo += f"""
+🔔 NOVIDADES ENCONTRADAS:
+
+"""
+            for noticia in novidades:
+                momento = noticia.data.strftime("%d/%m %H:%M") if noticia.data else "sem data"
+                corpo += f"• [{momento} - {noticia.origem}] {noticia.titulo}\n"
+                corpo += f"  Link: {noticia.url}\n\n"
+        else:
+            corpo += f"""
+📭 Nenhuma novidade encontrada desde a última verificação.
+
+"""
+        
+        # Adicionar as 3 últimas de cada site
+        corpo += f"""
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📰 ÚLTIMAS 3 NOTÍCIAS POR SITE:
+
+"""
+        for site, noticias in ultimas_por_site.items():
+            corpo += f"\n📍 {FONTES[site].nome}:\n"
+            for noticia in noticias:
+                momento = noticia.data.strftime("%d/%m %H:%M") if noticia.data else "sem data"
+                corpo += f"  • [{momento}] {noticia.titulo}\n"
+                corpo += f"    {noticia.url}\n"
+        
+        corpo += f"""
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔄 Próxima verificação: em 30 minutos
+⏰ Horário de funcionamento: 7h30 às 23h30
 
 ---
 Gerado automaticamente pelo sistema Futebol Notícias
 """
-        msg.attach(MIMEText(corpo, 'plain'))
         
-        # Anexar PDF
-        if pdf_path and Path(pdf_path).exists():
-            with open(pdf_path, 'rb') as f:
-                pdf_attachment = MIMEApplication(f.read(), _subtype='pdf')
-                pdf_attachment.add_header('Content-Disposition', 'attachment', filename=Path(pdf_path).name)
-                msg.attach(pdf_attachment)
+        msg.attach(MIMEText(corpo, 'plain', 'utf-8'))
         
         # Enviar email para todos os destinatários
         with smtplib.SMTP(smtp_server, smtp_port) as server:
@@ -192,34 +230,18 @@ def main():
     destinatarios_email = os.getenv('EMAIL_DESTINATARIOS', 'seu-email@example.com')
     
     # Verificar novidades
-    novidades = verificar_todas_novidades()
+    novidades, ultimas_por_site = verificar_todas_novidades()
     
-    if novidades:
-        print("\nGerando PDF das novidades...")
-        
-        # Gerar PDF
-        from menu import gerar_pdf_novidades
-        pdf_path = gerar_pdf_novidades(novidades)
-        
-        if pdf_path:
-            print(f"PDF gerado: {pdf_path}")
-            
-            # Enviar email
-            print("\nEnviando email...")
-            sucesso = enviar_email_com_pdf(novidades, pdf_path, destinatarios_email)
-            
-            if sucesso:
-                print("✓ Processo concluído com sucesso!")
-                return 0
-            else:
-                print("✗ Erro ao enviar email")
-                return 1
-        else:
-            print("✗ Erro ao gerar PDF")
-            return 1
-    else:
-        print("\nNenhuma novidade encontrada. Email não será enviado.")
+    # Enviar email com relatório (sempre envia, com ou sem novidades)
+    print("\nEnviando relatório por email...")
+    sucesso = enviar_email_relatorio(novidades, ultimas_por_site, destinatarios_email)
+    
+    if sucesso:
+        print("✓ Processo concluído com sucesso!")
         return 0
+    else:
+        print("✗ Erro ao enviar email")
+        return 1
 
 
 if __name__ == "__main__":
