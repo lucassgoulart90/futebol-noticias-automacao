@@ -181,7 +181,7 @@ def main():
     inicio_permitido = 7 * 60 + 30  # 7h30 = 450 minutos
     fim_permitido = 23 * 60 + 30    # 23h30 = 1410 minutos
     
-    if not (inicio_permitido <= minutos_totais <= fim_permitido):
+    if minutos_totais < inicio_permitido or minutos_totais > fim_permitido:
         print(f"Fora do horário permitido (7h30-23h30). Horário atual: {hora_atual:02d}:{minuto_atual:02d}")
         print("Automação não será executada.")
         return 0
