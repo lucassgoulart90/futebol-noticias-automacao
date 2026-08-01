@@ -15,9 +15,9 @@ from pathlib import Path
 # Adicionar diretório atual ao path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from menu import verificar_novidades
 from historico import obter_gerenciador
 from fontes import FONTES
+from noticias import detectar_novidades
 
 
 def verificar_todas_novidades():
