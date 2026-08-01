@@ -1184,11 +1184,13 @@ def verificar_novidades() -> None:
         print("Nenhuma novidade encontrada nos sites selecionados.")
 
 
-def gerar_pdf_novidades(noticias: list) -> None:
-    """Gera PDF simplificado com título e link das novidades."""
+def gerar_pdf_novidades(noticias: list) -> str | None:
+    """Gera PDF simplificado com título e link das novidades.
+    Retorna o caminho do PDF gerado ou None em caso de erro.
+    """
     if not REPORTLAB_AVAILABLE:
         print("ReportLab não está instalado. Não é possível gerar PDF.")
-        return
+        return None
     
     pasta = RAIZ / "saidas"
     pasta.mkdir(exist_ok=True)
@@ -1259,9 +1261,11 @@ def gerar_pdf_novidades(noticias: list) -> None:
         # Construir PDF
         doc.build(story)
         print(f"PDF gerado: {destino_pdf}")
+        return str(destino_pdf)
         
     except Exception as e:
         print(f"Erro ao gerar PDF: {e}")
+        return None
 
 
 def main() -> None:
