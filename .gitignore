@@ -1,0 +1,32 @@
+# Variáveis de ambiente
+.env
+
+# Arquivos temporários
+*.tmp
+*.log
+
+# Arquivos de histórico local
+.historico_buscas.json
+
+# PDFs gerados (opcional - comente se quiser versionar PDFs)
+saidas/*.pdf
+
+# Arquivos Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Selenium/Chrome
+chromedriver

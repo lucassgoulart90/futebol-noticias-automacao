@@ -1,0 +1,29 @@
+Vamos fazer uma matéria estilo Bolavip. Sou jornalista, gremista, identificado e muito conhecido no meio.
+
+Preciso que siga as orientações conforme documento em anexo.
+
+Abaixo matéria do site do Grêmio só para você ter como base e reescrever com nossas palavras conforme as orientações em anexo:
+
+""
+
+Preciso que você me entregue nessa ordem:
+
+TÍTULO
+SUBTÍTULO
+TEXTO
+PALAVRA-CHAVE
+SEO TITLE
+META DESCRIÇÃO
+TAGS
+HIDDEN TAGS
+WRITE AN EXCERPT
+PUSH TITLE
+SOCIAL TITLE
+HOME TITLE
+VOLANTA
+FACEBOOK TITLE
+FACEBOOK TEXTO RESUMIDO
+TC (chamada para eu fazer imagem no Canva; serão duas frases, uma curta de no máximo 4-5 com tudo maiúsculo como um JARGÃO e uma frase que pode ser maior, de até 10 palavras como uma descrição para chamada da matéria) 
+CTA 1 (chamada para redes sociais, posto em 3 redes sociais por isso 3 CTAs, chamando para a matéria sem omitir a informação mas dando a ideia de VEJA MAIS e etc)
+CTA 2 (chamada para redes sociais, posto em 3 redes sociais por isso 3 CTAs, chamando para a matéria sem omitir a informação mas dando a ideia de VEJA MAIS e etc)
+CTA 3 (chamada para redes sociais, posto em 3 redes sociais por isso 3 CTAs, chamando para a matéria sem omitir a informação mas dando a ideia de VEJA MAIS e etc)
