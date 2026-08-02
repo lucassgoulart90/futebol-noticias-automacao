@@ -15,38 +15,28 @@ from pathlib import Path
 # Adicionar diretório atual ao path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from historico import obter_gerenciador
 from fontes import FONTES
-from noticias import detectar_novidades
 
 
 def verificar_todas_novidades():
-    """Verifica novidades em todos os sites disponíveis e retorna as 3 últimas de cada."""
+    """Verifica novidades em todos os sites disponíveis e retorna as 3 últimas de cada.
+    Mostra notícias das últimas 24 horas como novidades.
+    """
+    from zoneinfo import ZoneInfo
+    fuso_sp = ZoneInfo("America/Sao_Paulo")
+    agora_sp = datetime.now(fuso_sp)
+    limite_24h = agora_sp - timedelta(hours=24)
+    
     sites_todos = ["gremio", "gzh", "ge", "portaldogremista", "cbf", "conmebol", "ge_selecao", "fgf"]
     
-    gerenciador = obter_gerenciador()
     todas_novidades = []
     ultimas_por_site = {}  # Armazena as 3 últimas de cada site
-    primeira_execucao = True  # Flag para controlar se é primeira execução
     
-    print(f"=== VERIFICANDO NOVIDADES - {datetime.now():%d/%m/%Y %H:%M} ===")
+    print(f"=== VERIFICANDO NOVIDADES - {agora_sp:%d/%m/%Y %H:%M} ===")
+    print(f"Buscando notícias das últimas 24 horas (desde {limite_24h:%d/%m/%Y %H:%M})")
     
     for site in sites_todos:
         print(f"\n--- Verificando {FONTES[site].nome} ---")
-        
-        # Obter URLs vistas anteriormente
-        urls_anteriores = gerenciador.obter_urls_anteriores(site)
-        ultima_busca = gerenciador.obter_ultima_busca(site)
-        
-        if ultima_busca:
-            try:
-                dt_ultima = datetime.fromisoformat(ultima_busca)
-                print(f"Última busca: {dt_ultima.strftime('%d/%m/%Y %H:%M')}")
-                primeira_execucao = False  # Se tem histórico, não é primeira execução
-            except:
-                print(f"Última busca: {ultima_busca}")
-        else:
-            print("Primeira busca neste site")
         
         # Buscar notícias atuais
         try:
@@ -84,41 +74,31 @@ def verificar_todas_novidades():
             else:
                 noticias_atuais = []
             
-            # Detectar novidades
-            from noticias import detectar_novidades
-            novidades = detectar_novidades(noticias_atuais, urls_anteriores)
+            # Filtrar apenas notícias das últimas 24 horas
+            novidades_24h = []
+            for noticia in noticias_atuais:
+                if noticia.data and noticia.data >= limite_24h:
+                    novidades_24h.append(noticia)
             
             # Guardar as 3 últimas do site (seja novidade ou não)
             ultimas_por_site[site] = noticias_atuais[:3]
             
-            if novidades:
-                print(f"✓ {len(novidades)} novidade(s) encontrada(s)")
-                todas_novidades.extend(novidades)
+            if novidades_24h:
+                print(f"✓ {len(novidades_24h)} notícia(s) nas últimas 24h")
+                todas_novidades.extend(novidades_24h)
             else:
-                if urls_anteriores:
-                    print("Nenhuma novidade encontrada.")
-                else:
-                    print("Nenhuma notícia encontrada no site.")
-            
-            # Atualizar histórico com as URLs atuais
-            urls_atuais = {n.url for n in noticias_atuais}
-            gerenciador.atualizar_historico(site, urls_atuais)
+                print("Nenhuma notícia nas últimas 24h.")
             
         except Exception as e:
             print(f"Erro ao verificar {FONTES[site].nome}: {e}")
     
     print(f"\n=== RESUMO ===")
-    if primeira_execucao:
-        print("Primeira execução do sistema. Histórico criado.")
-        print("Próxima execução mostrará apenas novidades reais.")
-        todas_novidades = []  # Não mostrar novidades na primeira execução
-    else:
-        print(f"Total de novidades: {len(todas_novidades)}")
+    print(f"Total de notícias nas últimas 24h: {len(todas_novidades)}")
     
-    return todas_novidades, ultimas_por_site, primeira_execucao
+    return todas_novidades, ultimas_por_site
 
 
-def enviar_email_relatorio(novidades, ultimas_por_site, destinatarios, primeira_execucao=False):
+def enviar_email_relatorio(novidades, ultimas_por_site, destinatarios):
     """Envia email com relatório de novidades e últimas 3 de cada site no corpo do email."""
     from dotenv import load_dotenv
     load_dotenv()
@@ -161,17 +141,7 @@ def enviar_email_relatorio(novidades, ultimas_por_site, destinatarios, primeira_
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📊 RESUMO
-"""
-        
-        if primeira_execucao:
-            corpo += f"""
-📭 Primeira execução do sistema
-Histórico criado. Próxima execução mostrará apenas novidades reais.
-
-"""
-        else:
-            corpo += f"""
-{"✅" if novidades else "📭"} Novidades encontradas: {len(novidades)}
+{"✅" if novidades else "📭"} Notícias nas últimas 24h: {len(novidades)}
 
 """
         
@@ -204,7 +174,7 @@ Histórico criado. Próxima execução mostrará apenas novidades reais.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🔄 Próxima verificação: em 1 hora
-⏰ Horário de funcionamento: 7h30 às 23h30
+⏰ Horário de funcionamento: 8h00 às 23h00 (verifica notícias do período 23h01-7h59)
 
 ---
 Gerado automaticamente pelo sistema Futebol Notícias
@@ -228,7 +198,7 @@ Gerado automaticamente pelo sistema Futebol Notícias
 
 def main():
     """Função principal da automação."""
-    # Verificar horário permitido (7h30 às 23h30) - usando fuso de São Paulo
+    # Verificar horário permitido (8h00 às 23h00) - usando fuso de São Paulo
     from zoneinfo import ZoneInfo
     fuso_sp = ZoneInfo("America/Sao_Paulo")
     agora_sp = datetime.now(fuso_sp)
@@ -238,25 +208,25 @@ def main():
     
     # Converter para minutos totais
     minutos_totais = hora_atual * 60 + minuto_atual
-    inicio_permitido = 7 * 60 + 30  # 7h30 = 450 minutos
-    fim_permitido = 23 * 60 + 30    # 23h30 = 1410 minutos
+    inicio_permitido = 8 * 60 + 0  # 8h00 = 480 minutos
+    fim_permitido = 23 * 60 + 0    # 23h00 = 1380 minutos
     
     if minutos_totais < inicio_permitido or minutos_totais > fim_permitido:
-        print(f"Fora do horário permitido (7h30-23h30). Horário atual SP: {hora_atual:02d}:{minuto_atual:02d}")
+        print(f"Fora do horário permitido (8h00-23h00). Horário atual SP: {hora_atual:02d}:{minuto_atual:02d}")
         print("Automação não será executada.")
         return 0
     
-    print(f"Horário permitido: {hora_atual:02d}:{minuto_atual:02d} (dentro do horário 7h30-23h30 SP)")
+    print(f"Horário permitido: {hora_atual:02d}:{minuto_atual:02d} (dentro do horário 8h00-23h00 SP)")
     
     # Configurações
     destinatarios_email = os.getenv('EMAIL_DESTINATARIOS', 'seu-email@example.com')
     
     # Verificar novidades
-    novidades, ultimas_por_site, primeira_execucao = verificar_todas_novidades()
+    novidades, ultimas_por_site = verificar_todas_novidades()
     
     # Enviar email sempre (com ou sem novidades)
     print("\nEnviando relatório por email...")
-    sucesso = enviar_email_relatorio(novidades, ultimas_por_site, destinatarios_email, primeira_execucao)
+    sucesso = enviar_email_relatorio(novidades, ultimas_por_site, destinatarios_email)
     
     if sucesso:
         print("✓ Processo concluído com sucesso!")
