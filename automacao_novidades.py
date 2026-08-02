@@ -23,12 +23,12 @@ from fontes import FONTES
 
 def verificar_todas_novidades():
     """Verifica novidades em todos os sites disponíveis e retorna as 3 últimas de cada.
-    Mostra notícias das últimas 24 horas como novidades.
+    Mostra notícias do intervalo da última hora (por exemplo, 17h-18h).
     """
     from zoneinfo import ZoneInfo
     fuso_sp = ZoneInfo("America/Sao_Paulo")
     agora_sp = datetime.now(fuso_sp)
-    limite_24h = agora_sp - timedelta(hours=24)
+    limite_1h = agora_sp - timedelta(hours=1)
     
     sites_todos = ["gremio", "gzh", "ge", "portaldogremista", "cbf", "conmebol", "ge_selecao", "fgf"]
     
@@ -36,7 +36,7 @@ def verificar_todas_novidades():
     ultimas_por_site = {}  # Armazena as 3 últimas de cada site
     
     print(f"=== VERIFICANDO NOVIDADES - {agora_sp:%d/%m/%Y %H:%M} ===")
-    print(f"Buscando notícias das últimas 24 horas (desde {limite_24h:%d/%m/%Y %H:%M})")
+    print(f"Buscando notícias do intervalo {limite_1h:%H:%M} - {agora_sp:%H:%M}")
     
     for site in sites_todos:
         print(f"\n--- Verificando {FONTES[site].nome} ---")
@@ -77,26 +77,26 @@ def verificar_todas_novidades():
             else:
                 noticias_atuais = []
             
-            # Filtrar apenas notícias das últimas 24 horas
-            novidades_24h = []
+            # Filtrar apenas notícias do intervalo da última hora
+            novidades_1h = []
             for noticia in noticias_atuais:
-                if noticia.data and noticia.data >= limite_24h:
-                    novidades_24h.append(noticia)
+                if noticia.data and noticia.data >= limite_1h:
+                    novidades_1h.append(noticia)
             
             # Guardar as 3 últimas do site (seja novidade ou não)
             ultimas_por_site[site] = noticias_atuais[:3]
             
-            if novidades_24h:
-                print(f"✓ {len(novidades_24h)} notícia(s) nas últimas 24h")
-                todas_novidades.extend(novidades_24h)
+            if novidades_1h:
+                print(f"✓ {len(novidades_1h)} notícia(s) no intervalo")
+                todas_novidades.extend(novidades_1h)
             else:
-                print("Nenhuma notícia nas últimas 24h.")
+                print("Nenhuma notícia no intervalo.")
             
         except Exception as e:
             print(f"Erro ao verificar {FONTES[site].nome}: {e}")
     
     print(f"\n=== RESUMO ===")
-    print(f"Total de notícias nas últimas 24h: {len(todas_novidades)}")
+    print(f"Total de notícias no intervalo: {len(todas_novidades)}")
     
     return todas_novidades, ultimas_por_site
 
@@ -144,7 +144,7 @@ def enviar_email_relatorio(novidades, ultimas_por_site, destinatarios):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📊 RESUMO
-{"✅" if novidades else "📭"} Notícias nas últimas 24h: {len(novidades)}
+{"✅" if novidades else "📭"} Notícias no intervalo da última hora: {len(novidades)}
 
 """
         
@@ -223,9 +223,6 @@ def main():
     
     # Configurações
     destinatarios_email = os.getenv('EMAIL_DESTINATARIOS')
-    
-    # Debug: mostrar o valor lido
-    print(f"EMAIL_DESTINATARIOS lido: {destinatarios_email}")
     
     if not destinatarios_email:
         print("ERRO: EMAIL_DESTINATARIOS não está configurado!")
