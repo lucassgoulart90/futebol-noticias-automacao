@@ -203,7 +203,7 @@ Histórico criado. Próxima execução mostrará apenas novidades reais.
         corpo += f"""
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🔄 Próxima verificação: em 30 minutos
+🔄 Próxima verificação: em 1 hora
 ⏰ Horário de funcionamento: 7h30 às 23h30
 
 ---
