@@ -10,9 +10,13 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Adicionar diretório atual ao path
 sys.path.insert(0, str(Path(__file__).parent))
+
+# Carregar variáveis de ambiente
+load_dotenv()
 
 from fontes import FONTES
 
@@ -218,7 +222,14 @@ def main():
     print(f"Horário permitido: {hora_atual:02d}:{minuto_atual:02d} (dentro do horário 8h00-23h00 SP)")
     
     # Configurações
-    destinatarios_email = os.getenv('EMAIL_DESTINATARIOS', 'seu-email@example.com')
+    destinatarios_email = os.getenv('EMAIL_DESTINATARIOS')
+    
+    # Debug: mostrar o valor lido
+    print(f"EMAIL_DESTINATARIOS lido: {destinatarios_email}")
+    
+    if not destinatarios_email:
+        print("ERRO: EMAIL_DESTINATARIOS não está configurado!")
+        return 1
     
     # Verificar novidades
     novidades, ultimas_por_site = verificar_todas_novidades()
