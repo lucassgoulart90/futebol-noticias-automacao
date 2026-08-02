@@ -228,9 +228,13 @@ Gerado automaticamente pelo sistema Futebol Notícias
 
 def main():
     """Função principal da automação."""
-    # Verificar horário permitido (7h30 às 23h30)
-    hora_atual = datetime.now().hour
-    minuto_atual = datetime.now().minute
+    # Verificar horário permitido (7h30 às 23h30) - usando fuso de São Paulo
+    from zoneinfo import ZoneInfo
+    fuso_sp = ZoneInfo("America/Sao_Paulo")
+    agora_sp = datetime.now(fuso_sp)
+    
+    hora_atual = agora_sp.hour
+    minuto_atual = agora_sp.minute
     
     # Converter para minutos totais
     minutos_totais = hora_atual * 60 + minuto_atual
@@ -238,11 +242,11 @@ def main():
     fim_permitido = 23 * 60 + 30    # 23h30 = 1410 minutos
     
     if minutos_totais < inicio_permitido or minutos_totais > fim_permitido:
-        print(f"Fora do horário permitido (7h30-23h30). Horário atual: {hora_atual:02d}:{minuto_atual:02d}")
+        print(f"Fora do horário permitido (7h30-23h30). Horário atual SP: {hora_atual:02d}:{minuto_atual:02d}")
         print("Automação não será executada.")
         return 0
     
-    print(f"Horário permitido: {hora_atual:02d}:{minuto_atual:02d} (dentro do horário 7h30-23h30)")
+    print(f"Horário permitido: {hora_atual:02d}:{minuto_atual:02d} (dentro do horário 7h30-23h30 SP)")
     
     # Configurações
     destinatarios_email = os.getenv('EMAIL_DESTINATARIOS', 'seu-email@example.com')
